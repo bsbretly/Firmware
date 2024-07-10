@@ -9,6 +9,7 @@
     <arg name="R" default="0"/>
     <arg name="P" default="0"/>
     <arg name="Y" default="0"/>
+    <arg name="beta_0" default ="0"/>
     <!-- vehicle model and world -->
     <arg name="est" default="ekf2"/>
     <arg name="vehicle" default="iris"/>
@@ -39,6 +40,16 @@
         <arg name="paused" value="$(arg paused)"/>
         <arg name="respawn_gazebo" value="$(arg respawn_gazebo)"/>
     </include>
+
     <!-- gazebo model -->
-    <node name="$(anon vehicle_spawn)" pkg="gazebo_ros" type="spawn_model" output="screen" args="-sdf -file $(arg sdf) -model $(arg vehicle) -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/>
+    <node name="$(anon vehicle_spawn)" pkg="gazebo_ros" type="spawn_model" output="screen" args="-sdf -file $(arg sdf) -model $(arg vehicle) -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y) -J custom_arm_vertical_arm_joint $(arg beta_0)"/>
+
+    <!-- Load the controller configuration -->
+    <rosparam file="$(find gazebo_sim)/cfg/controller.yaml" command="load"/>
+
+    <!-- Load the robot description into the parameter server -->
+    <param name="robot_description" command="$(find gazebo_sim)/models/px4/$(arg vehicle)/$(arg vehicle).sdf"/>
+
+    <!-- Start ROS control -->
+    <node name="controller_spawner" pkg="controller_manager" type="spawner" args="joint_position_controller" />
 </launch>
